@@ -3,19 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator</title>
-    <!-- นำเข้าไลบรารี qrcode.js ผ่าน CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Pro QR Generator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCode-JS@master/dist/easy.qrcode.min.js"></script>
+
     <style>
         :root {
-            --primary-color: #2ea44f;
-            --bg-color: #f6f8fa;
-            --text-color: #24292e;
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Chakra Petch', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -23,134 +31,198 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            box-sizing: border-box;
         }
+
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             text-align: center;
-            max-width: 400px;
             width: 100%;
+            max-width: 450px;
         }
+
         h1 {
-            margin-top: 0;
-            font-size: 24px;
-            color: #24292e;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
         input[type="text"] {
             width: 100%;
-            padding: 12px;
-            margin: 15px 0;
-            border: 1px solid #d1d5da;
-            border-radius: 6px;
+            padding: 14px;
+            margin: 20px 0;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            background: #0f172a;
+            color: white;
+            font-family: 'Chakra Petch', sans-serif;
             font-size: 16px;
             box-sizing: border-box;
             outline: none;
+            transition: border-color 0.3s;
         }
+
         input[type="text"]:focus {
-            border-color: #0366d6;
-            box-shadow: 0 0 0 3px rgba(3,102,214,0.3);
+            border-color: var(--primary);
         }
+
+        .btn-group {
+            display: grid;
+            gap: 10px;
+        }
+
         button {
-            background-color: var(--primary-color);
-            color: white;
+            font-family: 'Chakra Petch', sans-serif;
+            padding: 12px;
             border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+
+        .btn-generate {
+            background: var(--primary);
+            color: white;
             width: 100%;
-            margin-bottom: 15px;
-            transition: background-color 0.2s;
+            margin-bottom: 10px;
         }
-        button:hover {
-            background-color: #2c974b;
+
+        .btn-generate:hover { background: var(--secondary); }
+
+        .download-options {
+            display: none; /* ซ่อนจนกว่าจะสร้างสำเร็จ */
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
         }
-        .btn-download {
-            background-color: #0366d6;
-            display: none; /* ซ่อนไว้จนกว่าจะสร้าง QR Code */
-        }
-        .btn-download:hover {
-            background-color: #005cc5;
-        }
-        #qrcode {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            min-height: 200px; /* จองพื้นที่ไว้กันเว็บกระตุก */
-            align-items: center;
-        }
-        #qrcode img {
-            border: 1px solid #e1e4e8;
-            border-radius: 8px;
-            padding: 10px;
+
+        .btn-png { background: #10b981; color: white; }
+        .btn-svg { background: #f59e0b; color: white; }
+        
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        #qrcode-container {
             background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px auto;
+            display: none; /* ซ่อนจนกว่าจะสร้างสำเร็จ */
+            width: fit-content;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #64748b;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>สร้าง QR Code ฟรี</h1>
-        <p>ใส่ URL หรือข้อความที่ต้องการด้านล่าง</p>
+        <h1>QR Code Pro</h1>
+        <p>สร้าง QR Code ความละเอียดสูง & SVG</p>
         
-        <input type="text" id="textInput" placeholder="เช่น https://github.com/..." onkeydown="if(event.key === 'Enter') generateQR()">
+        <input type="text" id="textInput" placeholder="กรอก URL หรือ ข้อความที่นี่..." onkeydown="if(event.key === 'Enter') generateQR()">
         
-        <button onclick="generateQR()">สร้าง QR Code</button>
+        <button class="btn-generate" onclick="generateQR()">🚀 สร้าง QR Code</button>
         
-        <div id="qrcode"></div>
-        
-        <button id="downloadBtn" class="btn-download" onclick="downloadQR()">📥 ดาวน์โหลดรูปภาพ</button>
+        <div id="qrcode-container">
+            <div id="qrcode"></div>
+        </div>
+
+        <div class="download-options" id="downloadGroup">
+            <button class="btn-png" onclick="downloadPNG()">🖼️ เซฟ PNG (2000px)</button>
+            <button class="btn-svg" onclick="downloadSVG()">📐 เซฟ SVG (Vector)</button>
+        </div>
     </div>
 
+    <div class="footer">Powered by EasyQRCodeJS & Chakra Petch</div>
+
     <script>
-        let qrcode = null;
+        let qrInstance = null;
 
         function generateQR() {
-            const input = document.getElementById('textInput').value.trim();
-            const qrContainer = document.getElementById('qrcode');
-            const downloadBtn = document.getElementById('downloadBtn');
+            const text = document.getElementById('textInput').value.trim();
+            const container = document.getElementById('qrcode-container');
+            const display = document.getElementById('qrcode');
+            const downloadGroup = document.getElementById('downloadGroup');
 
-            // เช็คว่ามีข้อความหรือไม่
-            if (!input) {
-                alert('กรุณากรอก URL หรือข้อความก่อนครับ');
+            if (!text) {
+                alert('กรุณาพิมพ์ข้อความก่อนครับ');
                 return;
             }
 
-            // ลบ QR Code อันเก่าออก (ถ้ามี)
-            qrContainer.innerHTML = '';
+            // ล้างค่าเก่า
+            display.innerHTML = '';
+            container.style.display = 'block';
+            downloadGroup.style.display = 'grid';
 
-            // สร้าง QR Code ใหม่
-            qrcode = new QRCode(qrContainer, {
-                text: input,
-                width: 256,
-                height: 256,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H // ระดับการแก้ข้อผิดพลาดสูงสุด
+            // สร้าง QR Code สำหรับ Preview บนหน้าจอ (ขนาดเล็ก)
+            qrInstance = new QRCode(display, {
+                text: text,
+                width: 250,
+                height: 250,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
-
-            // แสดงปุ่มดาวน์โหลด
-            downloadBtn.style.display = 'block';
         }
 
-        function downloadQR() {
-            // qrcode.js จะสร้าง <canvas> และ <img> ซ้อนกัน เราดึงภาพจาก canvas มาโหลด
-            const canvas = document.querySelector('#qrcode canvas');
-            if (canvas) {
-                const url = canvas.toDataURL("image/png");
-                const link = document.createElement('a');
-                link.download = 'my-qrcode.png';
-                link.href = url;
-                link.click();
-            } else {
-                alert('ไม่พบรูปภาพ QR Code');
-            }
+        // ฟังก์ชันดาวน์โหลด PNG ขนาดใหญ่ (2000px)
+        function downloadPNG() {
+            const text = document.getElementById('textInput').value;
+            const tempDiv = document.createElement('div');
+            
+            // สร้าง QR Code แบบ High-res ใน Memory (ไม่แสดงบนจอ)
+            new QRCode(tempDiv, {
+                text: text,
+                width: 2000,
+                height: 2000,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H,
+                onRenderingEnd: function(options, dataURL) {
+                    const link = document.createElement('a');
+                    link.download = 'qrcode-high-res.png';
+                    link.href = dataURL;
+                    link.click();
+                }
+            });
+        }
+
+        // ฟังก์ชันดาวน์โหลดเป็น SVG
+        function downloadSVG() {
+            const text = document.getElementById('textInput').value;
+            const tempDiv = document.createElement('div');
+
+            // ใช้โหมด useSVG: true
+            new QRCode(tempDiv, {
+                text: text,
+                width: 500,
+                height: 500,
+                useSVG: true,
+                correctLevel: QRCode.CorrectLevel.H,
+                onRenderingEnd: function(options, dataURL) {
+                    const svgElement = tempDiv.querySelector('svg');
+                    const svgData = new XMLSerializer().serializeToString(svgElement);
+                    const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
+                    const url = URL.createObjectURL(svgBlob);
+                    
+                    const link = document.createElement('a');
+                    link.download = 'qrcode.svg';
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                }
+            });
         }
     </script>
-
 </body>
 </html>
