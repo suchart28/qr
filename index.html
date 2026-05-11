@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro QR Generator</title>
     
+    <!-- นำเข้า Google Fonts: Chakra Petch -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCode-JS@master/dist/easy.qrcode.min.js"></script>
+    <!-- แก้ไข: เปลี่ยนลิงก์ CDN ไลบรารีเป็น unpkg ซึ่งเสถียรกว่า -->
+    <script src="https://unpkg.com/easyqrcodejs/dist/easy.qrcode.min.js"></script>
 
     <style>
         :root {
@@ -41,6 +43,7 @@
             text-align: center;
             width: 100%;
             max-width: 450px;
+            box-sizing: border-box;
         }
 
         h1 {
@@ -70,11 +73,6 @@
             border-color: var(--primary);
         }
 
-        .btn-group {
-            display: grid;
-            gap: 10px;
-        }
-
         button {
             font-family: 'Chakra Petch', sans-serif;
             padding: 12px;
@@ -84,12 +82,12 @@
             font-weight: 600;
             transition: all 0.2s;
             font-size: 15px;
+            width: 100%;
         }
 
         .btn-generate {
             background: var(--primary);
             color: white;
-            width: 100%;
             margin-bottom: 10px;
         }
 
@@ -99,7 +97,7 @@
             display: none; /* ซ่อนจนกว่าจะสร้างสำเร็จ */
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .btn-png { background: #10b981; color: white; }
@@ -111,7 +109,7 @@
             background: white;
             padding: 15px;
             border-radius: 12px;
-            margin: 20px auto;
+            margin: 20px auto 0;
             display: none; /* ซ่อนจนกว่าจะสร้างสำเร็จ */
             width: fit-content;
         }
@@ -126,17 +124,19 @@
 <body>
 
     <div class="container">
-        <h1>QR Code Gen Pro</h1>
-        <p>สร้าง QR Code แบบไม่มีโฆษณา ไม่มีหมดอายุ</p>
+        <h1>QR Code Pro</h1>
+        <p>สร้าง QR Code ความละเอียดสูง & SVG</p>
         
         <input type="text" id="textInput" placeholder="กรอก URL หรือ ข้อความที่นี่..." onkeydown="if(event.key === 'Enter') generateQR()">
         
         <button class="btn-generate" onclick="generateQR()">🚀 สร้าง QR Code</button>
         
+        <!-- ส่วนแสดงผล -->
         <div id="qrcode-container">
             <div id="qrcode"></div>
         </div>
 
+        <!-- ปุ่มดาวน์โหลด -->
         <div class="download-options" id="downloadGroup">
             <button class="btn-png" onclick="downloadPNG()">🖼️ เซฟ PNG (2000px)</button>
             <button class="btn-svg" onclick="downloadSVG()">📐 เซฟ SVG (Vector)</button>
@@ -146,8 +146,6 @@
     <div class="footer">Powered by Suchart Prommee</div>
 
     <script>
-        let qrInstance = null;
-
         function generateQR() {
             const text = document.getElementById('textInput').value.trim();
             const container = document.getElementById('qrcode-container');
@@ -161,56 +159,73 @@
 
             // ล้างค่าเก่า
             display.innerHTML = '';
+            
+            // แสดงหน้าต่าง Preview
             container.style.display = 'block';
             downloadGroup.style.display = 'grid';
 
-            // สร้าง QR Code สำหรับ Preview บนหน้าจอ (ขนาดเล็ก)
-            qrInstance = new QRCode(display, {
+            // สร้าง QR Code ขนาดปกติสำหรับแสดงบนเว็บ
+            new QRCode(display, {
                 text: text,
-                width: 250,
-                height: 250,
+                width: 200,
+                height: 200,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
         }
 
-        // ฟังก์ชันดาวน์โหลด PNG ขนาดใหญ่ (2000px)
         function downloadPNG() {
-            const text = document.getElementById('textInput').value;
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
+
             const tempDiv = document.createElement('div');
             
-            // สร้าง QR Code แบบ High-res ใน Memory (ไม่แสดงบนจอ)
+            // แอบสร้าง QR Code ขนาดใหญ่ในพื้นหลัง
             new QRCode(tempDiv, {
                 text: text,
                 width: 2000,
                 height: 2000,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H,
-                onRenderingEnd: function(options, dataURL) {
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // ใช้ setTimeout เพื่อให้เวลาเบราว์เซอร์วาดรูปเสร็จก่อนดึงไฟล์
+            setTimeout(() => {
+                const canvas = tempDiv.querySelector('canvas');
+                if (canvas) {
                     const link = document.createElement('a');
                     link.download = 'qrcode-high-res.png';
-                    link.href = dataURL;
+                    link.href = canvas.toDataURL("image/png");
                     link.click();
+                } else {
+                    alert('ไม่สามารถสร้างไฟล์ PNG ได้');
                 }
-            });
+            }, 300);
         }
 
-        // ฟังก์ชันดาวน์โหลดเป็น SVG
         function downloadSVG() {
-            const text = document.getElementById('textInput').value;
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
+
             const tempDiv = document.createElement('div');
 
-            // ใช้โหมด useSVG: true
+            // ใช้โหมด drawer: 'svg' ของไลบรารี
             new QRCode(tempDiv, {
                 text: text,
                 width: 500,
                 height: 500,
-                useSVG: true,
-                correctLevel: QRCode.CorrectLevel.H,
-                onRenderingEnd: function(options, dataURL) {
-                    const svgElement = tempDiv.querySelector('svg');
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                drawer: 'svg', // จุดสำคัญที่ทำให้สร้างไฟล์ Vector ได้
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // รอประมวลผลแป๊บเดียวแล้วดึงแท็ก <svg> มาบันทึก
+            setTimeout(() => {
+                const svgElement = tempDiv.querySelector('svg');
+                if (svgElement) {
                     const svgData = new XMLSerializer().serializeToString(svgElement);
                     const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
                     const url = URL.createObjectURL(svgBlob);
@@ -219,9 +234,11 @@
                     link.download = 'qrcode.svg';
                     link.href = url;
                     link.click();
-                    URL.revokeObjectURL(url);
+                    URL.revokeObjectURL(url); // คืนพื้นที่หน่วยความจำ
+                } else {
+                    alert('ไม่สามารถสร้างไฟล์ SVG ได้');
                 }
-            });
+            }, 300);
         }
     </script>
 </body>
