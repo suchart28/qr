@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro QR Generator & URL Shortener</title>
+    <title>Pro QR & URL Shortener</title>
     
     <!-- นำเข้า Google Fonts: Chakra Petch -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +21,8 @@
             --card-bg: #1e293b;
             --text: #f8fafc;
             --accent: #10b981;
+            --btn-shorten: #0ea5e9;
+            --btn-shorten-hover: #0284c7;
         }
 
         body {
@@ -43,22 +45,27 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             text-align: center;
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             box-sizing: border-box;
         }
 
         h1 {
             font-weight: 700;
             margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            background: linear-gradient(to right, #818cf8, #38bdf8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+
         input[type="text"] {
             width: 100%;
-            padding: 14px;
-            margin: 15px 0;
+            padding: 16px;
+            margin-bottom: 20px;
             border: 2px solid #334155;
             border-radius: 12px;
             background: #0f172a;
@@ -74,25 +81,11 @@
             border-color: var(--primary);
         }
 
-        .options-group {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
+        .action-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-bottom: 20px;
-            font-size: 15px;
-            color: #cbd5e1;
-        }
-
-        .options-group input[type="checkbox"] {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
-
-        .options-group label {
-            cursor: pointer;
         }
 
         button {
@@ -107,20 +100,50 @@
             width: 100%;
         }
 
-        .btn-generate {
-            background: var(--primary);
-            color: white;
-            margin-bottom: 10px;
+        .btn-shorten { background: var(--btn-shorten); color: white; }
+        .btn-shorten:hover:not(:disabled) { background: var(--btn-shorten-hover); transform: translateY(-1px); }
+        .btn-shorten:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .btn-generate { background: var(--primary); color: white; }
+        .btn-generate:hover { background: var(--secondary); transform: translateY(-1px); }
+
+        /* ส่วนแสดงผลลิงก์ที่ย่อแล้ว */
+        #shortUrlResult {
+            display: none;
+            background: #0f172a;
+            border: 1px dashed var(--accent);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
         }
 
-        .btn-generate:hover:not(:disabled) { background: var(--secondary); transform: translateY(-1px); }
-        .btn-generate:disabled { background: #475569; cursor: not-allowed; opacity: 0.7; }
+        #shortUrlResult span {
+            color: var(--accent);
+            font-size: 16px;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .btn-copy {
+            background: #334155;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+            width: auto;
+            border-radius: 6px;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+        .btn-copy:hover { background: #475569; }
 
         .download-options {
             display: none;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .btn-png { background: var(--accent); color: white; }
@@ -131,17 +154,9 @@
             background: white;
             padding: 15px;
             border-radius: 12px;
-            margin: 20px auto 0;
+            margin: 0 auto;
             display: none;
             width: fit-content;
-        }
-
-        #shortUrlResult {
-            margin-top: 15px;
-            font-size: 14px;
-            color: var(--accent);
-            word-break: break-all;
-            display: none;
         }
 
         .footer {
@@ -154,21 +169,21 @@
 <body>
 
     <div class="container">
-        <h1>QR Code Pro</h1>
-        <p>สร้าง QR Code ความละเอียดสูง & SVG</p>
+        <h1>Smart Link & QR</h1>
+        <p class="subtitle">เครื่องมือย่อลิงก์ และสร้าง QR Code ในที่เดียว</p>
         
-        <input type="text" id="textInput" placeholder="กรอก URL หรือ ข้อความที่นี่..." onkeydown="if(event.key === 'Enter') generateQR()">
+        <input type="text" id="textInput" placeholder="วาง URL ยืดๆ ของคุณที่นี่..." onkeydown="if(event.key === 'Enter') generateQR()">
         
-        <!-- ตัวเลือกย่อลิงก์ -->
-        <div class="options-group">
-            <input type="checkbox" id="shortenCheckbox">
-            <label for="shortenCheckbox">ย่อลิงก์ให้สั้นลงด้วย TinyURL</label>
+        <!-- กล่องแสดงผลเมื่อย่อลิงก์สำเร็จ -->
+        <div id="shortUrlResult">
+            <span id="shortenedLink"></span>
+            <button class="btn-copy" onclick="copyToClipboard()">📋 คัดลอก</button>
         </div>
-        
-        <button id="generateBtn" class="btn-generate" onclick="generateQR()">🚀 สร้าง QR Code</button>
-        
-        <!-- แสดงผลลิงก์ที่ย่อแล้ว -->
-        <div id="shortUrlResult"></div>
+
+        <div class="action-group">
+            <button id="shortenBtn" class="btn-shorten" onclick="shortenURL()">✂️ ย่อลิงก์</button>
+            <button class="btn-generate" onclick="generateQR()">🚀 สร้าง QR Code</button>
+        </div>
 
         <!-- ส่วนแสดงผลภาพ QR -->
         <div id="qrcode-container">
@@ -185,64 +200,87 @@
     <div class="footer">Powered by EasyQRCodeJS & TinyURL API</div>
 
     <script>
-        // ใช้เก็บข้อมูล (URL ปกติ หรือ URL ที่ย่อแล้ว) เพื่อส่งไปสร้างรูปดาวน์โหลด
-        let finalQRText = ""; 
+        // ฟังก์ชันย่อลิงก์
+        async function shortenURL() {
+            let textInput = document.getElementById('textInput');
+            let text = textInput.value.trim();
+            const shortenBtn = document.getElementById('shortenBtn');
+            const resultBox = document.getElementById('shortUrlResult');
+            const linkSpan = document.getElementById('shortenedLink');
 
-        async function generateQR() {
-            let text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                alert('กรุณาวาง URL ที่ต้องการย่อก่อนครับ');
+                return;
+            }
+
+            // เช็คว่าเป็น URL เบื้องต้นหรือไม่
+            if (!text.includes('.')) {
+                alert('ดูเหมือนข้อความนี้จะไม่ใช่ URL นะครับ กรุณาตรวจสอบอีกครั้ง');
+                return;
+            }
+
+            // เติม http:// ถ้าไม่มี
+            if (!text.startsWith('http://') && !text.startsWith('https://')) {
+                text = 'https://' + text;
+                textInput.value = text;
+            }
+
+            try {
+                shortenBtn.innerText = "⏳ กำลังย่อ...";
+                shortenBtn.disabled = true;
+
+                const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(text)}`);
+                
+                if (response.ok) {
+                    const shortUrl = await response.text();
+                    
+                    // นำลิงก์สั้นที่ได้ ไปแทนที่ในช่องกรอกข้อความ
+                    textInput.value = shortUrl;
+                    
+                    // แสดงกล่องคัดลอกลิงก์
+                    linkSpan.innerText = shortUrl;
+                    resultBox.style.display = "flex";
+                } else {
+                    alert("เกิดข้อผิดพลาดจากระบบย่อลิงก์ครับ");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("ไม่สามารถเชื่อมต่อระบบย่อลิงก์ได้ครับ");
+            } finally {
+                shortenBtn.innerText = "✂️ ย่อลิงก์";
+                shortenBtn.disabled = false;
+            }
+        }
+
+        // ฟังก์ชันคัดลอกลิงก์สั้น
+        function copyToClipboard() {
+            const shortUrl = document.getElementById('shortenedLink').innerText;
+            navigator.clipboard.writeText(shortUrl).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                const originalText = btn.innerText;
+                btn.innerText = "✅ คัดลอกแล้ว!";
+                btn.style.background = "#10b981";
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "#334155";
+                }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        // ฟังก์ชันสร้าง QR Code
+        function generateQR() {
+            const text = document.getElementById('textInput').value.trim();
             const container = document.getElementById('qrcode-container');
             const display = document.getElementById('qrcode');
             const downloadGroup = document.getElementById('downloadGroup');
-            const generateBtn = document.getElementById('generateBtn');
-            const shortenCheckbox = document.getElementById('shortenCheckbox').checked;
-            const shortUrlResult = document.getElementById('shortUrlResult');
 
             if (!text) {
                 alert('กรุณาพิมพ์ข้อความหรือ URL ก่อนครับ');
                 return;
             }
-
-            // ถ้าผู้ใช้ต้องการย่อลิงก์
-            if (shortenCheckbox) {
-                // เช็คเบื้องต้นว่ามี http หรือไม่ ถ้าไม่มีให้เติม (API ย่อลิงก์ต้องการ http/https)
-                if (!text.startsWith('http://') && !text.startsWith('https://')) {
-                    text = 'https://' + text;
-                }
-
-                try {
-                    // เปลี่ยนสถานะปุ่มเป็นกำลังโหลด
-                    generateBtn.innerText = "⏳ กำลังย่อลิงก์...";
-                    generateBtn.disabled = true;
-
-                    // เรียกใช้ API ฟรีของ TinyURL
-                    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(text)}`);
-                    
-                    if (response.ok) {
-                        const shortUrl = await response.text();
-                        text = shortUrl; // นำลิงก์สั้นที่ได้มาใช้แทน
-
-                        // อัปเดต UI ให้ผู้ใช้เห็นลิงก์สั้น
-                        shortUrlResult.innerHTML = `<b>🔗 ลิงก์ที่ย่อแล้ว:</b> <a href="${shortUrl}" target="_blank" style="color: #10b981;">${shortUrl}</a>`;
-                        shortUrlResult.style.display = "block";
-                    } else {
-                        alert("เกิดข้อผิดพลาดในการย่อลิงก์ ระบบจะใช้ URL เดิมในการสร้าง QR Code ครับ");
-                        shortUrlResult.style.display = "none";
-                    }
-                } catch (error) {
-                    console.error("Error shortening URL:", error);
-                    alert("ไม่สามารถเชื่อมต่อระบบย่อลิงก์ได้ ระบบจะใช้ URL เดิมแทนครับ");
-                    shortUrlResult.style.display = "none";
-                } finally {
-                    // นำปุ่มกลับมาสู่สถานะปกติ
-                    generateBtn.innerText = "🚀 สร้าง QR Code";
-                    generateBtn.disabled = false;
-                }
-            } else {
-                shortUrlResult.style.display = "none";
-            }
-
-            // เก็บข้อความล่าสุดไว้ใช้ตอนกดปุ่มดาวน์โหลด
-            finalQRText = text;
 
             // ล้างภาพเก่า
             display.innerHTML = '';
@@ -253,7 +291,7 @@
 
             // สร้าง QR Code ขนาดปกติ
             new QRCode(display, {
-                text: finalQRText,
+                text: text, // ใช้ข้อความจากช่องกรอก ณ ปัจจุบัน (ซึ่งอาจจะถูกย่อมาแล้ว)
                 width: 200,
                 height: 200,
                 colorDark: "#000000",
@@ -263,11 +301,12 @@
         }
 
         function downloadPNG() {
-            if (!finalQRText) return;
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
             const tempDiv = document.createElement('div');
             
             new QRCode(tempDiv, {
-                text: finalQRText,
+                text: text,
                 width: 2000,
                 height: 2000,
                 colorDark: "#000000",
@@ -289,11 +328,12 @@
         }
 
         function downloadSVG() {
-            if (!finalQRText) return;
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
             const tempDiv = document.createElement('div');
 
             new QRCode(tempDiv, {
-                text: finalQRText,
+                text: text,
                 width: 500,
                 height: 500,
                 colorDark: "#000000",
